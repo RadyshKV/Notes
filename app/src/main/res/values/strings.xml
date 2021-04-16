@@ -15,5 +15,10 @@
     <string name="settings">Настройки</string>
     <string name="main">Главная</string>
     <string name="about">О программе</string>
-    <string name="fragment_navigation">Навигация</string>
+    <string name="user_login">login</string>
+    <string name="action_search">Search</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_add">Add</string>
+    <string name="action_share">Share</string>
+    <string name="action_add_a_link">Add link</string>
 </resources>

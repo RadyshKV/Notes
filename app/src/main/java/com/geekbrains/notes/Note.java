@@ -5,15 +5,14 @@ import android.os.Parcelable;
 
 
 public class Note implements Parcelable {
-    private String name;
+    private String title;
     private String description;
-    private String category;
     private String dateCreation;
 
 
-    public Note(String name, String dateCreation) {
-        this.name = name;
-        this.description = "Описание " + name;
+    public Note(String title, String description, String dateCreation) {
+        this.title = title;
+        this.description = description;
         this.dateCreation = dateCreation;
     }
 
@@ -23,9 +22,8 @@ public class Note implements Parcelable {
     }
 
     protected Note(Parcel in) {
-        name = in.readString();
+        title = in.readString();
         description = in.readString();
-        category = in.readString();
         dateCreation = in.readString();
     }
 
@@ -48,22 +46,17 @@ public class Note implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(name);
+        dest.writeString(title);
         dest.writeString(description);
-        dest.writeString(category);
         dest.writeString(dateCreation);
     }
 
-    public String getName() {
-        return name;
+    public String getTitle() {
+        return title;
     }
 
     public String getDescription() {
         return description;
-    }
-
-    public String getCategory() {
-        return category;
     }
 
     public String getDateCreation() {
