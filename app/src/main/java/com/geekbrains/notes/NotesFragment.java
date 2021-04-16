@@ -1,5 +1,6 @@
 package com.geekbrains.notes;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -7,14 +8,15 @@ import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.Calendar;
 
@@ -23,37 +25,43 @@ public class NotesFragment extends Fragment {
     public static final String CURRENT_NOTE = "CurrentNote";
     private Note currentNote;
     private boolean isLandscape;
+    private NotesSource notesData;
     Calendar date = Calendar.getInstance();
     String currentDate = DateUtils.formatDateTime(getContext(), date.getTimeInMillis(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR);
+    private NotesAdapter adapter;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.notes_fragment, container, false);
+        View view = inflater.inflate(R.layout.notes_fragment, container, false);
+        initRecyclerView(view);
+        return view;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        initList(view);
+        //initList(view);
     }
 
-    private void initList(View view) {
-        LinearLayout layoutView = (LinearLayout) view;
-        String[] notes = getResources().getStringArray(R.array.notes);
-
-        for (int i = 0; i < notes.length; i++) {
-            String note = notes[i];
-            TextView tv = new TextView(getContext());
-            tv.setText(note);
-            tv.setTextSize(30);
-            layoutView.addView(tv);
-            tv.setOnClickListener(v -> {
-                currentNote = new Note(note, currentDate);
+    private void initRecyclerView(View view) {
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view_notes);
+        recyclerView.setHasFixedSize(true);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        recyclerView.setLayoutManager(layoutManager);
+        notesData = new NotesSourceImpl(getResources()).init();
+        adapter = new NotesAdapter(notesData);
+        recyclerView.setAdapter(adapter);
+        // Установим слушателя
+        adapter.SetOnItemClickListener(new NotesAdapter.OnItemClickListener() {
+            @SuppressLint("DefaultLocale")
+            @Override
+            public void onItemClick(View view, int position) {
+                Toast.makeText(getContext(), String.format("Позиция - %d", position), Toast.LENGTH_SHORT).show();
+                currentNote = notesData.getNote(position);
                 showNote(currentNote);
-            });
-        }
-
+            }
+        });
     }
 
     private void showNote(Note currentNote) {
@@ -93,7 +101,7 @@ public class NotesFragment extends Fragment {
             currentNote = savedInstanceState.getParcelable(CURRENT_NOTE);
         } else {
             // Если воccтановить не удалось, то сделаем объект с первым индексом
-            currentNote = new Note(getResources().getStringArray(R.array.notes)[0], currentDate);
+            currentNote = notesData.getNote(0); //new Note(getResources().getStringArray(R.array.titles)[0], currentDate);
         }
 
         if (isLandscape) {

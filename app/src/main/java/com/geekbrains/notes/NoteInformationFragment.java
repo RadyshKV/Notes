@@ -1,16 +1,23 @@
 package com.geekbrains.notes;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 
 import java.util.Calendar;
@@ -20,6 +27,77 @@ public class NoteInformationFragment extends Fragment {
     private Note note;
     TextView noteDateCreationView;
     Calendar dateAndTime = Calendar.getInstance();
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            note = getArguments().getParcelable(ARG_NOTE);
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // Таким способом можно получить головной элемент из макета
+        View view = inflater.inflate(R.layout.note_information_fragment, container, false);
+
+        EditText noteNameView = view.findViewById(R.id.noteTitle);
+        noteNameView.setText(note.getTitle());
+
+        noteDateCreationView = view.findViewById(R.id.noteDateCreation);
+        noteDateCreationView.setText(note.getDateCreation());
+        noteDateCreationView.setOnClickListener(this::setDate);
+
+        EditText noteDescriptionView = view.findViewById(R.id.noteDescription);
+        noteDescriptionView.setText(note.getDescription());
+
+        setHasOptionsMenu(true);
+
+        initPopupMenu(view);
+        return view;
+    }
+
+    private void initPopupMenu(View view) {
+        TextView text = view.findViewById(R.id.noteTitle);
+
+        text.setOnClickListener(v -> {
+            Activity activity = requireActivity();
+            PopupMenu popupMenu = new PopupMenu(activity, v);
+            Menu menu = popupMenu.getMenu();
+            activity.getMenuInflater().inflate(R.menu.main_fragment, menu);
+            popupMenu.setOnMenuItemClickListener(this::menuItemAction);
+            popupMenu.show();
+        });
+    }
+
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.main_fragment, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return menuItemAction(item);
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    boolean menuItemAction(MenuItem item){
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.action_share:
+                Toast.makeText(getContext(), "Share", Toast.LENGTH_SHORT).show();
+                return true;
+            case R.id.action_add_a_link:
+                Toast.makeText(getContext(), "Link", Toast.LENGTH_SHORT).show();
+                return true;
+        }
+        return false;
+    }
+
+
+
 
     // установка обработчика выбора даты
     DatePickerDialog.OnDateSetListener d = (view, year, monthOfYear, dayOfMonth) -> {
@@ -53,34 +131,5 @@ public class NoteInformationFragment extends Fragment {
         args.putParcelable(ARG_NOTE, note);
         f.setArguments(args);
         return f;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            note = getArguments().getParcelable(ARG_NOTE);
-        }
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // Таким способом можно получить головной элемент из макета
-        View view = inflater.inflate(R.layout.note_information_fragment, container, false);
-
-        EditText noteNameView = view.findViewById(R.id.noteName);
-        noteNameView.setText(note.getName());
-
-        EditText noteCategoryView = view.findViewById(R.id.noteCategory);
-        noteCategoryView.setText(note.getCategory());
-
-        noteDateCreationView = view.findViewById(R.id.noteDateCreation);
-        noteDateCreationView.setText(note.getDateCreation());
-        noteDateCreationView.setOnClickListener(this::setDate);
-
-        EditText noteDescriptionView = view.findViewById(R.id.noteDescription);
-        noteDescriptionView.setText(note.getDescription());
-        return view;
     }
 }
