@@ -5,7 +5,7 @@
         <item>Заметка 2</item>
         <item>Заметка 3</item>
         <item>Заметка 4</item>
-        <item>Заметка 6</item>
+        <item>Заметка 5</item>
     </string-array>
 
     <string-array name="descriptions">
@@ -13,14 +13,6 @@
         <item>Описание 2</item>
         <item>Описание 3</item>
         <item>Описание 4</item>
-        <item>Описание 6</item>
+        <item>Описание 5</item>
     </string-array>
-    <string-array name="dates">
-        <item>2021.11.02</item>
-        <item>2021.11.03</item>
-        <item>2021.11.07</item>
-        <item>2021.10.02</item>
-        <item>2021.12.01</item>
-    </string-array>
-
 </resources>

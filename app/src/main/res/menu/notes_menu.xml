@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_search"
-        android:orderInCategory="100"
+        android:orderInCategory="10"
         android:title="@string/action_search"
         android:icon="@android:drawable/ic_menu_search"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
@@ -11,8 +11,23 @@
 
     <item
         android:id="@+id/action_sort"
-        android:orderInCategory="100"
+        android:orderInCategory="20"
         android:title="@string/action_sort"
         android:icon="@android:drawable/ic_menu_sort_alphabetically"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_add"
+        android:orderInCategory="30"
+        android:title="@string/action_add"
+        android:icon="@android:drawable/ic_menu_add"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_clear"
+        android:orderInCategory="30"
+        android:title="@string/action_clear"
+        android:icon="@android:drawable/ic_notification_clear_all"
+        app:showAsAction="ifRoom" />
+
 </menu>
