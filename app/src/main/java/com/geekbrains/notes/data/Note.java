@@ -1,22 +1,24 @@
-package com.geekbrains.notes;
+package com.geekbrains.notes.data;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import java.util.Date;
 
 
 public class Note implements Parcelable {
     private String title;
     private String description;
-    private String dateCreation;
+    private Date dateCreation;
 
 
-    public Note(String title, String description, String dateCreation) {
+    public Note(String title, String description, Date dateCreation) {
         this.title = title;
         this.description = description;
         this.dateCreation = dateCreation;
     }
 
-    public Note setDateCreation(String dateCreation) {
+    public Note setDateCreation(Date dateCreation) {
         this.dateCreation = dateCreation;
         return this;
     }
@@ -24,7 +26,7 @@ public class Note implements Parcelable {
     protected Note(Parcel in) {
         title = in.readString();
         description = in.readString();
-        dateCreation = in.readString();
+        dateCreation = new Date(in.readLong());
     }
 
     public static final Creator<Note> CREATOR = new Creator<Note>() {
@@ -48,7 +50,8 @@ public class Note implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(title);
         dest.writeString(description);
-        dest.writeString(dateCreation);
+        dest.writeLong(dateCreation.getTime());
+
     }
 
     public String getTitle() {
@@ -59,7 +62,7 @@ public class Note implements Parcelable {
         return description;
     }
 
-    public String getDateCreation() {
+    public Date getDateCreation() {
         return dateCreation;
     }
 }

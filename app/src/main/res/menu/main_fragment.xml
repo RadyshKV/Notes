@@ -4,11 +4,11 @@
     <item
         android:title="@string/action_share"
         android:id="@+id/action_share"
-        android:orderInCategory="10"
+        android:orderInCategory="40"
         app:showAsAction="ifRoom"/>
     <item
         android:title="@string/action_add_a_link"
         android:id="@+id/action_add_a_link"
-        android:orderInCategory="20"
+        android:orderInCategory="50"
         app:showAsAction="ifRoom"/>
 </menu>

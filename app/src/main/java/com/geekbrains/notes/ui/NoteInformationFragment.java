@@ -1,17 +1,14 @@
-package com.geekbrains.notes;
+package com.geekbrains.notes.ui;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,14 +17,18 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 
-import java.util.Calendar;
+import com.geekbrains.notes.R;
+import com.geekbrains.notes.data.Note;
+
+import java.text.SimpleDateFormat;
 
 public class NoteInformationFragment extends Fragment {
     public static final String ARG_NOTE = "note";
     private Note note;
-    TextView noteDateCreationView;
-    Calendar dateAndTime = Calendar.getInstance();
-
+    private TextView noteDateCreationView;
+    //Calendar dateAndTime = Calendar.getInstance();
+    private TextView noteTitle;
+    private TextView noteDescriptionView;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,20 +37,21 @@ public class NoteInformationFragment extends Fragment {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         // Таким способом можно получить головной элемент из макета
         View view = inflater.inflate(R.layout.note_information_fragment, container, false);
 
-        EditText noteNameView = view.findViewById(R.id.noteTitle);
-        noteNameView.setText(note.getTitle());
+        noteTitle = view.findViewById(R.id.noteTitle);
+        noteTitle.setText(note.getTitle());
 
         noteDateCreationView = view.findViewById(R.id.noteDateCreation);
-        noteDateCreationView.setText(note.getDateCreation());
-        noteDateCreationView.setOnClickListener(this::setDate);
+        noteDateCreationView.setText(new SimpleDateFormat("dd-MM-yy").format(note.getDateCreation()));
+        //noteDateCreationView.setOnClickListener(this::setDate);
 
-        EditText noteDescriptionView = view.findViewById(R.id.noteDescription);
+        noteDescriptionView = view.findViewById(R.id.noteDescription);
         noteDescriptionView.setText(note.getDescription());
 
         setHasOptionsMenu(true);
@@ -59,9 +61,8 @@ public class NoteInformationFragment extends Fragment {
     }
 
     private void initPopupMenu(View view) {
-        TextView text = view.findViewById(R.id.noteTitle);
 
-        text.setOnClickListener(v -> {
+        noteTitle.setOnClickListener(v -> {
             Activity activity = requireActivity();
             PopupMenu popupMenu = new PopupMenu(activity, v);
             Menu menu = popupMenu.getMenu();
@@ -98,7 +99,7 @@ public class NoteInformationFragment extends Fragment {
 
 
 
-
+/*
     // установка обработчика выбора даты
     DatePickerDialog.OnDateSetListener d = (view, year, monthOfYear, dayOfMonth) -> {
         dateAndTime.set(Calendar.YEAR, year);
@@ -121,7 +122,7 @@ public class NoteInformationFragment extends Fragment {
         String currentDate = DateUtils.formatDateTime(getContext(), dateAndTime.getTimeInMillis(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR);
         noteDateCreationView.setText(currentDate);
         note.setDateCreation(currentDate);
-    }
+    }*/
 
     public static NoteInformationFragment newInstance(Note note) {
         NoteInformationFragment f = new NoteInformationFragment();    // создание

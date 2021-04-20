@@ -1,4 +1,4 @@
-package com.geekbrains.notes;
+package com.geekbrains.notes.ui;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import com.geekbrains.notes.R;
 
 public class AboutFragment extends Fragment {
 

@@ -1,8 +1,11 @@
-package com.geekbrains.notes;
+package com.geekbrains.notes.data;
 
 import android.content.res.Resources;
 
+import com.geekbrains.notes.R;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class NotesSourceImpl implements NotesSource {
@@ -19,11 +22,9 @@ public class NotesSourceImpl implements NotesSource {
         String[] titles = resources.getStringArray(R.array.titles);
         // строки описаний из ресурсов
         String[] descriptions = resources.getStringArray(R.array.descriptions);
-        // строки дат из ресурсов
-        String[] dates = resources.getStringArray(R.array.dates);
         // заполнение источника данных
         for (int i = 0; i < titles.length; i++) {
-            noteSource.add(new Note(titles[i], descriptions[i], dates[i]));
+            noteSource.add(new Note(titles[i], descriptions[i], Calendar.getInstance().getTime()));
         }
         return this;
     }
@@ -37,5 +38,25 @@ public class NotesSourceImpl implements NotesSource {
     @Override
     public int size() {
         return noteSource.size();
+    }
+
+    @Override
+    public void deleteNote(int position) {
+        noteSource.remove(position);
+    }
+
+    @Override
+    public void updateNote(int position, Note note) {
+        noteSource.set(position, note);
+    }
+
+    @Override
+    public void addNote(Note note) {
+        noteSource.add(note);
+    }
+
+    @Override
+    public void clearNotes() {
+        noteSource.clear();
     }
 }

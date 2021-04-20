@@ -21,4 +21,9 @@
     <string name="action_add">Add</string>
     <string name="action_share">Share</string>
     <string name="action_add_a_link">Add link</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_update">Update</string>
+    <string name="action_delete">Delete</string>
+    <string name="title">Заголовок</string>
+    <string name="descr">Описание</string>
 </resources>
