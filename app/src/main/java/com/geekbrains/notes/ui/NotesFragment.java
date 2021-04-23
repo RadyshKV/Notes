@@ -28,10 +28,14 @@ import com.geekbrains.notes.MainActivity;
 import com.geekbrains.notes.NoteInformationActivity;
 import com.geekbrains.notes.R;
 import com.geekbrains.notes.data.Note;
+import com.geekbrains.notes.data.NoteSourceFirebaseImpl;
 import com.geekbrains.notes.data.NotesSource;
 import com.geekbrains.notes.data.NotesSourceImpl;
+import com.geekbrains.notes.data.NotesSourceResponse;
 import com.geekbrains.notes.observe.Observer;
 import com.geekbrains.notes.observe.Publisher;
+
+import java.util.Date;
 
 public class NotesFragment extends Fragment {
 
@@ -40,22 +44,10 @@ public class NotesFragment extends Fragment {
     private boolean isLandscape;
     private NotesSource notesData;
     private NotesAdapter adapter;
-    private RecyclerView recyclerView;
     private Navigation navigation;
     private Publisher publisher;
-    private boolean moveToLastPosition;
+    private boolean moveToFirstPosition;
 
-    //Calendar date = Calendar.getInstance();
-    //String currentDate = DateUtils.formatDateTime(getContext(), date.getTimeInMillis(), DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_YEAR);
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Получим источник данных для списка
-        // Поскольку onCreateView запускается каждый раз
-        // при возврате в фрагмент, данные надо создавать один раз
-        notesData = new NotesSourceImpl(getResources()).init();
-    }
 
     @Nullable
     @Override
@@ -63,6 +55,13 @@ public class NotesFragment extends Fragment {
         View view = inflater.inflate(R.layout.notes_fragment, container, false);
         initRecyclerView(view);
         setHasOptionsMenu(true);
+        notesData = new NoteSourceFirebaseImpl().init(new NotesSourceResponse() {
+            @Override
+            public void initialized(NotesSource notesSource) {
+                adapter.notifyDataSetChanged();
+            }
+        });
+        adapter.setNoteSource(notesData);
         return view;
     }
 
@@ -71,10 +70,11 @@ public class NotesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         //initList(view);
     }
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        MainActivity activity = (MainActivity)context;
+        MainActivity activity = (MainActivity) context;
         navigation = activity.getNavigation();
         publisher = activity.getPublisher();
     }
@@ -88,21 +88,21 @@ public class NotesFragment extends Fragment {
 
     @SuppressLint({"UseCompatLoadingForDrawables", "DefaultLocale"})
     private void initRecyclerView(View view) {
-        recyclerView = view.findViewById(R.id.recycler_view_notes);
+        RecyclerView recyclerView = view.findViewById(R.id.recycler_view_notes);
         //recyclerView.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        adapter = new NotesAdapter(notesData, this);
+        adapter = new NotesAdapter(this);
         recyclerView.setAdapter(adapter);
 
         // Добавим разделитель карточек
-        DividerItemDecoration itemDecoration = new DividerItemDecoration(requireContext(),  LinearLayoutManager.VERTICAL);
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL);
         itemDecoration.setDrawable(getResources().getDrawable(R.drawable.separator, null));
         recyclerView.addItemDecoration(itemDecoration);
 
-        if (moveToLastPosition){
-            recyclerView.smoothScrollToPosition(notesData.size() - 1);
-            moveToLastPosition = false;
+        if (moveToFirstPosition && notesData.size() > 0) {
+            recyclerView.smoothScrollToPosition(0);
+            moveToFirstPosition = false;
         }
 
         // Установим слушателя
@@ -159,11 +159,26 @@ public class NotesFragment extends Fragment {
         });
     }
 
-    @SuppressLint("NonConstantResourceId")
+    @Override
+    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, @Nullable ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        MenuInflater menuInflater = requireActivity().getMenuInflater();
+        menuInflater.inflate(R.menu.note_card_menu, menu);
+    }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        switch (id) {
+        return onItemSelected(item.getItemId()) || super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        return onItemSelected(item.getItemId()) || super.onContextItemSelected(item);
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    private boolean onItemSelected(int menuItemId) {
+        switch (menuItemId) {
             case R.id.action_search:
                 Toast.makeText(getContext(), "Search", Toast.LENGTH_SHORT).show();
                 return true;
@@ -177,50 +192,32 @@ public class NotesFragment extends Fragment {
                     public void updateNote(Note note) {
                         notesData.addNote(note);
                         adapter.notifyItemInserted(notesData.size() - 1);
-                        // это сигнал, чтобы вызванный метод onCreateView
-                        // перепрыгнул на конец списка
-                        moveToLastPosition = true;
+                        moveToFirstPosition = true;
                     }
                 });
+                return true;
+            case R.id.action_update:
+                int updatePosition = adapter.getMenuPosition();
+                navigation.addFragment(NoteUpdateFragment.newInstance(notesData.getNote(updatePosition)), true);
+                publisher.subscribe(new Observer() {
+                    @Override
+                    public void updateNote(Note note) {
+                        notesData.updateNote(updatePosition, note);
+                        adapter.notifyItemChanged(updatePosition);
+                    }
+                });
+                return true;
+            case R.id.action_delete:
+                int deletePosition = adapter.getMenuPosition();
+                notesData.deleteNote(deletePosition);
+                adapter.notifyItemRemoved(deletePosition);
                 return true;
             case R.id.action_clear:
                 notesData.clearNotes();
                 adapter.notifyDataSetChanged();
                 return true;
-
         }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, @Nullable ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        MenuInflater menuInflater = requireActivity().getMenuInflater();
-        menuInflater.inflate(R.menu.note_card_menu, menu);
-    }
-
-    @SuppressLint("NonConstantResourceId")
-    @Override
-    public boolean onContextItemSelected(@NonNull MenuItem item) {
-        int position = adapter.getMenuPosition();
-        switch (item.getItemId()) {
-            case R.id.action_update:
-                navigation.addFragment(NoteUpdateFragment.newInstance(notesData.getNote(position)), true);
-                publisher.subscribe(new Observer() {
-                    @Override
-                    public void updateNote(Note note) {
-                        notesData.updateNote(position, note);
-                        adapter.notifyItemChanged(position);
-                    }
-                });
-                return true;
-            case R.id.action_delete:
-                notesData.deleteNote(position);
-                adapter.notifyItemRemoved(position);
-                return true;
-        }
-            return super.onContextItemSelected(item);
-
+        return false;
     }
 
     @Override
@@ -233,8 +230,10 @@ public class NotesFragment extends Fragment {
             // Восстановление текущей позиции.
             currentNote = savedInstanceState.getParcelable(CURRENT_NOTE);
         } else {
-            // Если воccтановить не удалось, то сделаем объект с первым индексом
-            currentNote = notesData.getNote(0); //new Note(getResources().getStringArray(R.array.titles)[0], currentDate);
+            if (notesData.size()!=0) {
+                // Если воccтановить не удалось, то сделаем объект с первым индексом
+                currentNote = notesData.getNote(0); //new Note(getResources().getStringArray(R.array.titles)[0], currentDate);
+            }
         }
 
         if (isLandscape) {
