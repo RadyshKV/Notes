@@ -3,6 +3,7 @@ package com.geekbrains.notes.data;
 import com.geekbrains.notes.data.Note;
 
 public interface NotesSource {
+    NotesSource init (NotesSourceResponse notesSourceResponse);
     Note getNote (int position);
     int size();
     void deleteNote(int position);

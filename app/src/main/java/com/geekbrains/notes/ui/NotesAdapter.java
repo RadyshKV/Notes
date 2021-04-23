@@ -20,17 +20,23 @@ import java.text.SimpleDateFormat;
 
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> {
     private final static String TAG = "NotesAdapter";
-    private final NotesSource noteSource;
+    private NotesSource noteSource;
     private final Fragment fragment;
     private int menuPosition;
 
     private Context context;
     private OnItemClickListener itemClickListener;  // Слушатель будет устанавливаться извне
 
-    public NotesAdapter(NotesSource noteSource, Fragment fragment) {
-        this.noteSource = noteSource;
+    public NotesAdapter(Fragment fragment) {
         this.fragment = fragment;
     }
+
+    public void setNoteSource(NotesSource noteSource){
+        this.noteSource = noteSource;
+        notifyDataSetChanged();
+    }
+
+
 
     public int getMenuPosition() {
         return menuPosition;
@@ -66,9 +72,9 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> 
 
 
     class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView title;
-        private TextView description;
-        private TextView date;
+        private final TextView title;
+        private final TextView description;
+        private final TextView date;
 
         @SuppressLint("NewApi")
         public ViewHolder(@NonNull final View itemView) {
@@ -92,8 +98,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.ViewHolder> 
             });
 
         }
-
-
 
         private void registerContextMenu(@NonNull View itemView) {
             if (fragment != null){
