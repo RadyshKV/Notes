@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -30,12 +31,9 @@ import com.geekbrains.notes.R;
 import com.geekbrains.notes.data.Note;
 import com.geekbrains.notes.data.NoteSourceFirebaseImpl;
 import com.geekbrains.notes.data.NotesSource;
-import com.geekbrains.notes.data.NotesSourceImpl;
-import com.geekbrains.notes.data.NotesSourceResponse;
-import com.geekbrains.notes.observe.Observer;
 import com.geekbrains.notes.observe.Publisher;
 
-import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class NotesFragment extends Fragment {
 
@@ -55,12 +53,7 @@ public class NotesFragment extends Fragment {
         View view = inflater.inflate(R.layout.notes_fragment, container, false);
         initRecyclerView(view);
         setHasOptionsMenu(true);
-        notesData = new NoteSourceFirebaseImpl().init(new NotesSourceResponse() {
-            @Override
-            public void initialized(NotesSource notesSource) {
-                adapter.notifyDataSetChanged();
-            }
-        });
+        notesData = new NoteSourceFirebaseImpl().init(notesSource -> adapter.notifyDataSetChanged());
         adapter.setNoteSource(notesData);
         return view;
     }
@@ -187,38 +180,67 @@ public class NotesFragment extends Fragment {
                 return true;
             case R.id.action_add:
                 navigation.addFragment(NoteUpdateFragment.newInstance(), true);
-                publisher.subscribe(new Observer() {
-                    @Override
-                    public void updateNote(Note note) {
-                        notesData.addNote(note);
-                        adapter.notifyItemInserted(notesData.size() - 1);
-                        moveToFirstPosition = true;
-                    }
+                publisher.subscribe(note -> {
+                    notesData.addNote(note);
+                    adapter.notifyItemInserted(notesData.size() - 1);
+                    moveToFirstPosition = true;
                 });
                 return true;
             case R.id.action_update:
                 int updatePosition = adapter.getMenuPosition();
                 navigation.addFragment(NoteUpdateFragment.newInstance(notesData.getNote(updatePosition)), true);
-                publisher.subscribe(new Observer() {
-                    @Override
-                    public void updateNote(Note note) {
-                        notesData.updateNote(updatePosition, note);
-                        adapter.notifyItemChanged(updatePosition);
-                    }
+                publisher.subscribe(note -> {
+                    notesData.updateNote(updatePosition, note);
+                    adapter.notifyItemChanged(updatePosition);
                 });
                 return true;
             case R.id.action_delete:
-                int deletePosition = adapter.getMenuPosition();
-                notesData.deleteNote(deletePosition);
-                adapter.notifyItemRemoved(deletePosition);
-                return true;
             case R.id.action_clear:
-                notesData.clearNotes();
-                adapter.notifyDataSetChanged();
+                openConfirmationDialog(menuItemId);
                 return true;
+
         }
         return false;
     }
+
+    @SuppressLint("NonConstantResourceId")
+    private void openConfirmationDialog(int menuItemId) {
+        // Создаём билдер и передаём контекст приложения
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+        // В билдере указываем заголовок окна. Можно указывать как ресурс,
+        // так и строку
+        builder.setTitle(R.string.attention)
+                // Указываем сообщение в окне. Также есть вариант со
+                // строковым параметром
+                .setMessage(R.string.confirm_delete)
+                // Можно указать и пиктограмму
+                .setIcon(R.mipmap.ic_launcher_round)
+                // Из этого окна нельзя выйти кнопкой Back
+                .setCancelable(true)
+                // Устанавливаем кнопку. Название кнопки также можно
+                // задавать строкой
+                .setNegativeButton(R.string.no, (dialog, id) -> {
+                })
+                .setPositiveButton(R.string.yes,
+                        // Ставим слушатель, нажатие будем обрабатывать
+                        (dialog, id) -> {
+                            switch (menuItemId) {
+                                case R.id.action_delete:
+                                    int deletePosition = adapter.getMenuPosition();
+                                    notesData.deleteNote(deletePosition);
+                                    adapter.notifyItemRemoved(deletePosition);
+                                    break;
+
+                                case R.id.action_clear:
+                                    notesData.clearNotes();
+                                    adapter.notifyDataSetChanged();
+                                    break;
+                            }
+                        });
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
@@ -230,7 +252,7 @@ public class NotesFragment extends Fragment {
             // Восстановление текущей позиции.
             currentNote = savedInstanceState.getParcelable(CURRENT_NOTE);
         } else {
-            if (notesData.size()!=0) {
+            if (notesData.size() != 0) {
                 // Если воccтановить не удалось, то сделаем объект с первым индексом
                 currentNote = notesData.getNote(0); //new Note(getResources().getStringArray(R.array.titles)[0], currentDate);
             }
